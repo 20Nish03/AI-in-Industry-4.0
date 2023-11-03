@@ -1,0 +1,25 @@
+import pxr
+
+traffic_stage = pxr.Usd.Stage.CreateNew("traffic_scene.usda")
+
+main_layer = traffic_stage.GetRootLayer()
+
+with pxr.Usd.EditContext(traffic_stage, main_layer):
+    sublayer_traffic_control = pxr.Usd.SubLayer.Define(traffic_stage, "traffic_control_sublayer.usda")
+    main_layer.subLayers.append(sublayer_traffic_control.GetIdentifier())
+
+    assembly_traffic_control = pxr.UsdGeom.Xform.Define(traffic_stage, "/traffic_control_assembly")
+    assembly_traffic_control.GetReferences().AddReference("traffic_cones.usda")
+
+    material_traffic_cones = pxr.UsdShade.Material.Define(traffic_stage, "/traffic_cones_material")
+    output_surface_traffic_cones = material_traffic_cones.DefineOutput("surface")
+
+    shader_traffic_cones = pxr.UsdShade.Shader.Define(traffic_stage, "/traffic_cones_material/cone_shader")
+    shaderId_traffic_cones = shader_traffic_cones.GetPath().name
+    shaderIdAttr_traffic_cones = output_surface_traffic_cones.ConnectToSource(shaderId_traffic_cones)
+    shaderIdAttr_traffic_cones.Set("UsdPreviewSurface")
+
+    shader_inputs_traffic_cones = shader_traffic_cones.CreateInput("diffuseColor", pxr.Sdf.ValueTypeNames.Color3f)
+    shader_inputs_traffic_cones.Set((0.9, 0.2, 0.2))  # Red color
+
+traffic_stage.GetRootLayer().Export("traffic_scene.usda")
